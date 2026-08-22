@@ -1,0 +1,36 @@
+{
+  "name": "mcp-x-brand-presence-mapper",
+  "displayName": "X Twitter Brand Presence Mapper",
+  "version": "1.0.0",
+  "description": "MCP server for the Mamba Labs X Twitter Brand Presence Mapper actor on Apify. Resolve a company domain to its X handle, profile URL and follower metrics.",
+  "author": {
+    "name": "Mamba Labs",
+    "email": "labs@mambamindsetgrowth.com"
+  },
+  "homepage": "https://mambabuilt.com",
+  "repository": "https://github.com/mambalabsdev/mcp-x-brand-presence-mapper",
+  "license": "MIT",
+  "logo": "https://mmg-brand-assets.netlify.app/apify-actor-pngs/apify_webhook.png",
+  "category": "productivity",
+  "tags": [
+    "x",
+    "twitter",
+    "social-media",
+    "follower-counts",
+    "brand-presence",
+    "apify",
+    "clay"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x",
+    "twitter",
+    "social-media",
+    "follower-counts",
+    "brand-presence",
+    "apify",
+    "clay"
+  ],
+  "mcpServers": ".mcp.json"
+}
