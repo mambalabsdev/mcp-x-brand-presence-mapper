@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "mcp-x-brand-presence-mapper",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP server that resolve a company domain to its X handle, profile URL and follower metrics.",
   "author": {
     "name": "Mamba Labs"
