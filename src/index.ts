@@ -6,6 +6,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+// Optional per call spending cap, passed through to the actor's own max_charge_usd
+// input. The actor enforces it; this wrapper only forwards it when set.
+const MAX_CHARGE_USD = z
+  .number()
+  .min(0)
+  .optional()
+  .describe(
+    "Optional spending cap for this call, in USD, passed to the actor as max_charge_usd. The run stops before any charge that would take it past this amount and keeps every row already charged. Leave empty to rely only on the maximum charge per run set on your Apify account.",
+  );
+
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(
   readFileSync(join(here, "..", "package.json"), "utf8"),
@@ -77,7 +87,9 @@ async function runActor(
   actorPath: string,
   actorLabel: string,
   input: Record<string, unknown>,
+  maxChargeUsd?: number,
 ): Promise<ToolResult> {
+  if (maxChargeUsd !== undefined) input = { ...input, max_charge_usd: maxChargeUsd };
   const APIFY_TOKEN = process.env.APIFY_TOKEN;
   if (!APIFY_TOKEN) {
     return { isError: true, content: [{ type: "text", text: "APIFY_TOKEN is not set. Create a token at https://console.apify.com/account/integrations and set it as the APIFY_TOKEN environment variable." }] };
@@ -218,7 +230,7 @@ server.registerTool(
       "Resolve a company domain to that company's official X (Twitter) handle and profile URL, with follower count, bio and account age where X serves them. Returns one flat Clay ready row. Runs keyless out of the box and X rate limits that route aggressively, so on a large batch some rows return the handle and URL with the counts marked not_extractable; supplying your own X API bearer token removes that limit and returns full metrics at any batch size. A guessed handle that fails the identity check is reported as identity_mismatch rather than returned as the company's, and a company with no X account reports x_status not_found. Read x_status before any count. Read only; requires an APIFY_TOKEN and consumes Apify credits per call.",
     annotations: {
       title: "Map X Twitter Brand Presence",
-      readOnlyHint: true,
+      readOnlyHint: false,
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: true,
@@ -242,9 +254,10 @@ server.registerTool(
       xApiBearerToken: z.string()
         .optional()
         .describe("YOUR OWN X API v2 bearer token, free to create at developer.x.com. OPTIONAL: leave it empty and the actor still resolves handles, profile URLs and follower counts, but X rate limits the public route so on a large batch some rows return not_extractable instead of counts. Supplying a token removes that limit and every row returns full metrics. Your token is used for your run only, is never stored, and is never shared with another run."),
+      max_charge_usd: MAX_CHARGE_USD,
     },
   },
-  async ({ company_domain, company_name, handle, includeFollowerCounts, skipCache, xApiBearerToken }) => {
+  async ({ company_domain, company_name, handle, includeFollowerCounts, skipCache, xApiBearerToken, max_charge_usd }) => {
     return runActor(
       "oLOgadhHUkNAyDA3w",
       "X Twitter Brand Presence Mapper",
@@ -256,7 +269,7 @@ server.registerTool(
         skipCache: boolToString(skipCache),
         xApiBearerToken,
       }),
-    );
+     max_charge_usd,);
   },
 );
 
