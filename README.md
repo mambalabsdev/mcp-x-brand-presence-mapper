@@ -14,6 +14,7 @@ An MCP server that resolves a company domain to its X (Twitter) handle, profile 
 - [Output](#output)
 - [Example output](#example-output)
 - [Features](#features)
+- [Pricing](#pricing)
 - [Full actor documentation](#full-actor-documentation)
 - [Mamba Labs GTM Suite](#mamba-labs-gtm-suite)
 - [License](#license)
@@ -69,6 +70,7 @@ Get your token at https://console.apify.com/account/integrations, paste it in, a
 - `includeFollowerCounts` (optional): when true (the default) the profile page is fetched and the counts are extracted. Set false to resolve the profile URL only, which is cheaper and needs no proxy.
 - `skipCache` (optional): when false (the default) a successful lookup is cached for seven days and reused. Set true to force a fresh fetch.
 - `xApiBearerToken` (optional): your own X API v2 bearer token, free to create at developer.x.com. Without one the tool still resolves handles, profile URLs and follower counts, but X rate limits the public route so some rows in a large batch return `not_extractable` instead of counts. Your token is used for your run only, is never stored, and is never shared with another run.
+- `max_charge_usd` (optional): spending cap for this call, in USD. The actor stops before any charge that would take the run past this amount and keeps every row already charged.
 
 Supply either `company_domain` or `handle`.
 
@@ -110,6 +112,19 @@ The tool returns the actor's flat JSON row for the company, with 18 snake_case f
 - Domain first discovery from the homepage `sameAs` markup
 - The fetch route is reported per row in `x_fetch_route`
 - 18 flat snake_case fields, one row per company
+
+## Pricing
+
+You pay per event on Apify, billed to your own Apify account. Prices from the live pricing record, read 2026-10-16:
+
+| Event | Price per event (USD) | Fires when |
+| --- | --- | --- |
+| `apify-actor-start` | $0.00005 | Charged when the Actor starts running. Number of events charged depends on Actor memory (one event per GB, minimum one event). |
+| `company-checked` | $0.0035 on the Free plan, down to $0.00245 on higher Apify plans | Once per company for which the discovery cascade completed and a non degraded row was produced, whether or not an X account was found. Does not fire on a degraded row, because on a degraded row no discovery was performed. |
+| `profile-resolved` | $0.003 on the Free plan, down to $0.0021 on higher Apify plans | Once per company whose candidate X URL passed the identity gate. Fires on the validation work, not on a populated count. This is the event that carries the actor in keyless mode, because handle resolution succeeds whether or not X served a count. |
+| `follower-count-extracted` | $0.0025 on the Free plan, down to $0.00175 on higher Apify plans | Once per company where a numeric follower count was actually read, from either route. A rate limited row does not fire it and is not charged for the count, which is deliberate: an event firing on a not_extractable row would be charging for the string not_extractable. |
+
+The [actor's Apify page](https://apify.com/mambalabs/x-brand-presence-mapper) carries the current prices. Running this server consumes Apify credits.
 
 ## Full actor documentation
 
